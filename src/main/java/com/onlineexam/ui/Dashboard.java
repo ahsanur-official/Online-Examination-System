@@ -1,13 +1,10 @@
 package com.onlineexam.ui;
 
-import com.onlineexam.database.DBConnection;
+import com.onlineexam.database.FileManager;
 import com.onlineexam.utils.CustomButton;
 import com.onlineexam.utils.StatisticsCard;
 import com.onlineexam.utils.UIConstants;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import javax.swing.*;
 
 /**
@@ -15,8 +12,8 @@ import javax.swing.*;
  */
 public class Dashboard extends JFrame {
 
-    private int studentId;
-    private String studentName;
+    private final int studentId;
+    private final String studentName;
 
     public Dashboard(int studentId, String studentName) {
         this.studentId = studentId;
@@ -109,27 +106,9 @@ public class Dashboard extends JFrame {
         statsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 10));
 
         // Get statistics from database
-        int totalExams = 0;
-        int averageScore = 0;
-        int highestScore = 0;
-        int passingExams = 0;
-
-        try {
-            Connection con = DBConnection.getConnection();
-            String query = "SELECT COUNT(*), AVG(score), MAX(score) FROM result WHERE student_id = ?";
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1, studentId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                totalExams = rs.getInt(1);
-                averageScore = (int) rs.getDouble(2);
-                highestScore = rs.getInt(3);
-            }
-            con.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        int totalExams = FileManager.getStudentExamCount(studentId);
+        int averageScore = (int) Math.round(FileManager.getStudentAverageScore(studentId));
+        int highestScore = FileManager.getStudentHighestScore(studentId);
 
         // Create statistic cards
         StatisticsCard card1 = new StatisticsCard("Total Exams", String.valueOf(totalExams),

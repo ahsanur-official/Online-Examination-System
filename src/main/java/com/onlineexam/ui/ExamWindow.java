@@ -1,15 +1,13 @@
 package com.onlineexam.ui;
 
-import com.onlineexam.database.DBConnection;
+import com.onlineexam.database.FileManager;
 import com.onlineexam.model.Question;
+import com.onlineexam.model.Result;
 import com.onlineexam.utils.CustomButton;
 import com.onlineexam.utils.UIConstants;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.*;
 
@@ -44,20 +42,9 @@ public class ExamWindow extends JFrame {
     }
 
     private void loadQuestions() {
-        try (Connection con = DBConnection.getConnection()) {
-            PreparedStatement ps = con.prepareStatement(
-                    "SELECT id, question, option1, option2, option3, option4, answer FROM question");
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Question q = new Question(rs.getInt(1), rs.getString(2), rs.getString(3),
-                        rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
-                questions.add(q);
-            }
-            Collections.shuffle(questions);
-            answers = new int[questions.size()];
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        questions = FileManager.getRandomQuestions(10);
+        answers = new int[questions.size()];
+        Arrays.fill(answers, -1);
     }
 
     private void init() {
@@ -238,6 +225,10 @@ public class ExamWindow extends JFrame {
         opts[2].setText(q.getOption3());
         opts[3].setText(q.getOption4());
 
+        if (answers[idx] >= 0 && answers[idx] < opts.length) {
+            opts[answers[idx]].setSelected(true);
+        }
+
         // Update progress
         progressBar.setValue(idx + 1);
         progressLabel.setText("Question " + (idx + 1) + " of " + questions.size());
@@ -259,6 +250,7 @@ public class ExamWindow extends JFrame {
     }
 
     private void saveAnswer() {
+        answers[index] = -1;
         for (int i = 0; i < 4; i++) {
             if (opts[i].isSelected()) {
                 answers[index] = i;
@@ -292,21 +284,16 @@ public class ExamWindow extends JFrame {
         // Calculate score
         int correctCount = 0;
         for (int i = 0; i < questions.size(); i++) {
-            String selectedAnswer = opts[answers[i]].getText();
-            if (selectedAnswer.equals(questions.get(i).getAnswer())) {
+            int selectedIndex = answers[i];
+            if (selectedIndex == questions.get(i).getCorrectAnswer() - 1) {
                 correctCount++;
             }
         }
 
-        // Save result to database
-        try (Connection con = DBConnection.getConnection()) {
-            String query = "INSERT INTO result (student_id, score, total_questions, exam_date) "
-                    + "VALUES (?, ?, ?, NOW())";
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1, studentId);
-            ps.setInt(2, correctCount);
-            ps.setInt(3, questions.size());
-            ps.executeUpdate();
+        // Save result to CSV file storage
+        try {
+            FileManager.addResult(new Result(0, studentId, correctCount, questions.size(),
+                    java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -24,8 +24,8 @@ public class CustomButton extends JButton {
         setBackground(normalColor);
         setForeground(UIConstants.WHITE);
         setFont(UIConstants.FONT_SUBHEADING);
-        setPreferredSize(new Dimension(150, 42));
-        setMargin(new Insets(8, 18, 8, 18));
+        setPreferredSize(new Dimension(170, 48));
+        setMargin(new Insets(10, 22, 10, 22));
         setBorder(BorderFactory.createEmptyBorder());
         setContentAreaFilled(false);
         setOpaque(false);

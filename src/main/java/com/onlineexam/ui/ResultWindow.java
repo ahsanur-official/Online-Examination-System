@@ -1,5 +1,6 @@
 package com.onlineexam.ui;
 
+import com.onlineexam.database.FileManager;
 import com.onlineexam.utils.CustomButton;
 import com.onlineexam.utils.UIConstants;
 import java.awt.*;
@@ -10,9 +11,9 @@ import javax.swing.*;
  */
 public class ResultWindow extends JFrame {
 
-    private int studentId;
-    private int score;
-    private int total;
+    private final int studentId;
+    private final int score;
+    private final int total;
 
     public ResultWindow(int studentId, int score, int total) {
         this.studentId = studentId;
@@ -216,11 +217,41 @@ public class ResultWindow extends JFrame {
 
     private void backToDashboard() {
         dispose();
-        // Create new dashboard - would need student info from session
+        StudentSession session = StudentSession.fromStudentId(studentId);
+        if (session != null) {
+            new Dashboard(session.studentId(), session.studentName()).setVisible(true);
+        }
     }
 
     private void retakeExam() {
         dispose();
-        // Start new exam
+        new ExamWindow(studentId).setVisible(true);
+    }
+
+    private static final class StudentSession {
+
+        private final int studentId;
+        private final String studentName;
+
+        private StudentSession(int studentId, String studentName) {
+            this.studentId = studentId;
+            this.studentName = studentName;
+        }
+
+        private static StudentSession fromStudentId(int studentId) {
+            var student = FileManager.getStudentById(studentId);
+            if (student == null) {
+                return null;
+            }
+            return new StudentSession(student.getId(), student.getName());
+        }
+
+        private int studentId() {
+            return studentId;
+        }
+
+        private String studentName() {
+            return studentName;
+        }
     }
 }

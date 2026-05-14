@@ -1,13 +1,11 @@
 package com.onlineexam.ui;
 
-import com.onlineexam.database.DBConnection;
+import com.onlineexam.database.FileManager;
+import com.onlineexam.model.Student;
 import com.onlineexam.utils.CustomButton;
 import com.onlineexam.utils.CustomTextField;
 import com.onlineexam.utils.UIConstants;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import javax.swing.*;
 
 /**
@@ -15,8 +13,8 @@ import javax.swing.*;
  */
 public class ProfileWindow extends JFrame {
 
-    private int studentId;
-    private String studentName;
+    private final int studentId;
+    private final String studentName;
     private CustomTextField txtName;
     private CustomTextField txtUsername;
     private CustomTextField txtEmail;
@@ -132,20 +130,12 @@ public class ProfileWindow extends JFrame {
 
     private void loadUserData() {
         try {
-            Connection con = DBConnection.getConnection();
-            String query = "SELECT username, email FROM student WHERE id = ?";
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1, studentId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                txtUsername.setText(rs.getString(1));
-                String email = rs.getString(2);
-                if (email != null) {
-                    txtEmail.setText(email);
-                }
+            Student student = FileManager.getStudentById(studentId);
+            if (student != null) {
+                txtName.setText(student.getName());
+                txtUsername.setText(student.getUsername());
+                txtEmail.setText(student.getEmail() == null ? "" : student.getEmail());
             }
-            con.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -162,19 +152,14 @@ public class ProfileWindow extends JFrame {
         }
 
         try {
-            Connection con = DBConnection.getConnection();
-            String query = "UPDATE student SET name = ?, email = ? WHERE id = ?";
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setString(1, name);
-            ps.setString(2, email.isEmpty() ? null : email);
-            ps.setInt(3, studentId);
-
-            int result = ps.executeUpdate();
-            if (result > 0) {
+            Student student = FileManager.getStudentById(studentId);
+            if (student != null) {
+                student.setName(name);
+                student.setEmail(email.isEmpty() ? "" : email);
+                FileManager.updateStudent(student);
                 statusLabel.setForeground(UIConstants.SUCCESS_COLOR);
                 statusLabel.setText("Profile updated successfully!");
             }
-            con.close();
         } catch (Exception e) {
             statusLabel.setForeground(UIConstants.DANGER_COLOR);
             statusLabel.setText("Error: " + e.getMessage());

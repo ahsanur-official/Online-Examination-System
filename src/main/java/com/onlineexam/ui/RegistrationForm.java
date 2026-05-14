@@ -23,7 +23,7 @@ public class RegistrationForm extends JFrame {
     public RegistrationForm() {
         setTitle("Online Exam System - Registration");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(560, 780);
+        setSize(720, 1040);
         setLocationRelativeTo(null);
         setResizable(false);
         init();
@@ -40,6 +40,7 @@ public class RegistrationForm extends JFrame {
             }
         };
         mainPanel.setLayout(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(22, 22, 22, 22));
 
         // Header
         JPanel headerPanel = new JPanel() {
@@ -55,7 +56,7 @@ public class RegistrationForm extends JFrame {
             }
         };
         headerPanel.setLayout(new GridBagLayout());
-        headerPanel.setPreferredSize(new Dimension(560, 150));
+        headerPanel.setPreferredSize(new Dimension(720, 210));
 
         JLabel titleLabel = new JLabel("Create New Account");
         titleLabel.setFont(UIConstants.FONT_TITLE);
@@ -64,6 +65,10 @@ public class RegistrationForm extends JFrame {
         JLabel subtitleLabel = new JLabel("Join the online exam portal");
         subtitleLabel.setFont(UIConstants.FONT_NORMAL);
         subtitleLabel.setForeground(new Color(255, 255, 255, 210));
+
+        JLabel hintLabel = new JLabel("Create an account to take exams and track your progress");
+        hintLabel.setFont(UIConstants.FONT_SMALL);
+        hintLabel.setForeground(new Color(255, 255, 255, 185));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -75,31 +80,38 @@ public class RegistrationForm extends JFrame {
         gbc.insets = new Insets(0, 0, 0, 0);
         headerPanel.add(subtitleLabel, gbc);
 
+        gbc.gridy = 2;
+        gbc.insets = new Insets(4, 0, 0, 0);
+        headerPanel.add(hintLabel, gbc);
+
         // Form panel
         JPanel formPanel = new JPanel();
         formPanel.setBackground(UIConstants.WHITE);
         formPanel.setLayout(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createEmptyBorder(35, 55, 35, 55));
+        formPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 1, 1, 1, UIConstants.BORDER_COLOR),
+                BorderFactory.createEmptyBorder(36, 88, 36, 88)));
 
         gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 0, 8, 0);
+        gbc.insets = new Insets(12, 0, 12, 0);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
 
         JLabel formTitle = new JLabel("Student Registration");
         formTitle.setFont(UIConstants.FONT_HEADING);
-        formTitle.setForeground(UIConstants.SUCCESS_COLOR.darker());
+        formTitle.setForeground(UIConstants.PRIMARY_DARK);
         gbc.gridy = 0;
-        gbc.insets = new Insets(0, 0, 14, 0);
+        gbc.insets = new Insets(0, 0, 18, 0);
         formPanel.add(formTitle, gbc);
 
-        gbc.insets = new Insets(8, 0, 8, 0);
+        gbc.insets = new Insets(10, 0, 10, 0);
 
         // Full Name
         gbc.gridy = 1;
         formPanel.add(new JLabel("Full Name:"), gbc);
         gbc.gridy = 2;
         txtName = new CustomTextField();
+        txtName.setPreferredSize(new Dimension(360, 42));
         formPanel.add(txtName, gbc);
 
         // Username
@@ -107,6 +119,7 @@ public class RegistrationForm extends JFrame {
         formPanel.add(new JLabel("Username:"), gbc);
         gbc.gridy = 4;
         txtUsername = new CustomTextField();
+        txtUsername.setPreferredSize(new Dimension(360, 42));
         formPanel.add(txtUsername, gbc);
 
         // Email
@@ -114,6 +127,7 @@ public class RegistrationForm extends JFrame {
         formPanel.add(new JLabel("Email:"), gbc);
         gbc.gridy = 6;
         txtEmail = new CustomTextField();
+        txtEmail.setPreferredSize(new Dimension(360, 42));
         formPanel.add(txtEmail, gbc);
 
         // Password
@@ -122,7 +136,7 @@ public class RegistrationForm extends JFrame {
         gbc.gridy = 8;
         txtPassword = new JPasswordField();
         txtPassword.setFont(UIConstants.FONT_NORMAL);
-        txtPassword.setPreferredSize(UIConstants.TEXT_FIELD_SIZE);
+        txtPassword.setPreferredSize(new Dimension(360, 42));
         formPanel.add(txtPassword, gbc);
 
         // Confirm Password
@@ -131,7 +145,7 @@ public class RegistrationForm extends JFrame {
         gbc.gridy = 10;
         txtConfirmPassword = new JPasswordField();
         txtConfirmPassword.setFont(UIConstants.FONT_NORMAL);
-        txtConfirmPassword.setPreferredSize(UIConstants.TEXT_FIELD_SIZE);
+        txtConfirmPassword.setPreferredSize(new Dimension(360, 42));
         formPanel.add(txtConfirmPassword, gbc);
 
         // Status
@@ -142,14 +156,16 @@ public class RegistrationForm extends JFrame {
 
         // Buttons
         gbc.gridy = 12;
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 14, 0));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 18, 0));
         buttonPanel.setBackground(UIConstants.WHITE);
 
         CustomButton btnRegister = new CustomButton("Register", UIConstants.SUCCESS_COLOR);
+        btnRegister.setPreferredSize(new Dimension(170, 48));
         btnRegister.addActionListener(e -> register());
         buttonPanel.add(btnRegister);
 
         CustomButton btnBack = new CustomButton("Back", UIConstants.PRIMARY_COLOR);
+        btnBack.setPreferredSize(new Dimension(170, 48));
         btnBack.addActionListener(e -> backToLogin());
         buttonPanel.add(btnBack);
 

@@ -1,10 +1,9 @@
 package com.onlineexam.database;
 
-import com.onlineexam.model.Student;
 import com.onlineexam.model.Admin;
 import com.onlineexam.model.Question;
 import com.onlineexam.model.Result;
-
+import com.onlineexam.model.Student;
 import java.io.*;
 import java.nio.file.*;
 import java.time.LocalDateTime;
@@ -142,6 +141,22 @@ public class FileManager {
         return students;
     }
 
+    public static Student getStudentById(int studentId) {
+        try (Scanner scanner = new Scanner(new File(STUDENTS_FILE))) {
+            scanner.nextLine();
+            while (scanner.hasNextLine()) {
+                String[] parts = scanner.nextLine().split(",");
+                if (parts.length >= 5 && Integer.parseInt(parts[0]) == studentId) {
+                    Student student = new Student(Integer.parseInt(parts[0]), parts[1], parts[2], parts[3], parts[4]);
+                    return student;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private static int getNextStudentId() {
         int maxId = 0;
         try (Scanner scanner = new Scanner(new File(STUDENTS_FILE))) {
@@ -238,6 +253,18 @@ public class FileManager {
             e.printStackTrace();
         }
         return questions;
+    }
+
+    public static List<Question> getRandomQuestions(int count) {
+        List<Question> questions = new ArrayList<>(getAllQuestions());
+        Collections.shuffle(questions);
+        if (count <= 0 || questions.isEmpty()) {
+            return new ArrayList<>();
+        }
+        if (count >= questions.size()) {
+            return questions;
+        }
+        return new ArrayList<>(questions.subList(0, count));
     }
 
     public static void deleteQuestion(int questionId) {

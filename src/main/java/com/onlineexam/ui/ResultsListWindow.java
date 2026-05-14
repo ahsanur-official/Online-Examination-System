@@ -1,12 +1,10 @@
 package com.onlineexam.ui;
 
-import com.onlineexam.database.DBConnection;
+import com.onlineexam.database.FileManager;
+import com.onlineexam.model.Result;
 import com.onlineexam.utils.CustomButton;
 import com.onlineexam.utils.UIConstants;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.*;
@@ -17,7 +15,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class ResultsListWindow extends JFrame {
 
-    private int studentId;
+    private final int studentId;
     private JTable resultsTable;
 
     public ResultsListWindow(int studentId) {
@@ -83,17 +81,11 @@ public class ResultsListWindow extends JFrame {
 
     private void loadResults(DefaultTableModel model) {
         try {
-            Connection con = DBConnection.getConnection();
-            String query = "SELECT id, score, total_questions, exam_date FROM result WHERE student_id = ? ORDER BY exam_date DESC";
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1, studentId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                int examId = rs.getInt(1);
-                int score = rs.getInt(2);
-                int total = rs.getInt(3);
-                Date examDate = rs.getTimestamp(4);
+            for (Result result : FileManager.getStudentResults(studentId)) {
+                int examId = result.getId();
+                int score = result.getScore();
+                int total = result.getTotalQuestions();
+                Date examDate = result.getExamDate();
 
                 double percentage = (score * 100.0) / total;
                 String grade = percentage >= 90 ? "A" : percentage >= 75 ? "B" : percentage >= 50 ? "C" : "D";
@@ -102,7 +94,6 @@ public class ResultsListWindow extends JFrame {
 
                 model.addRow(new Object[]{examId, score, total, String.format("%.2f%%", percentage), dateStr, grade});
             }
-            con.close();
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error loading results: " + e.getMessage());

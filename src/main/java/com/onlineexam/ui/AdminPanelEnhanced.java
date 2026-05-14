@@ -1,13 +1,15 @@
 package com.onlineexam.ui;
 
-import com.onlineexam.database.DBConnection;
+import com.onlineexam.database.FileManager;
+import com.onlineexam.model.Question;
+import com.onlineexam.model.Result;
+import com.onlineexam.model.Student;
 import com.onlineexam.utils.CustomButton;
 import com.onlineexam.utils.StatisticsCard;
 import com.onlineexam.utils.UIConstants;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -16,8 +18,8 @@ import javax.swing.table.DefaultTableModel;
  */
 public class AdminPanelEnhanced extends JFrame {
 
-    private int adminId;
-    private String adminName;
+    private final int adminId;
+    private final String adminName;
     private JTabbedPane tabbedPane;
 
     public AdminPanelEnhanced(int adminId, String adminName) {
@@ -99,35 +101,10 @@ public class AdminPanelEnhanced extends JFrame {
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 20));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        int totalStudents = 0, totalQuestions = 0, totalExamsTaken = 0;
-        double averageScore = 0;
-
-        try {
-            Connection con = DBConnection.getConnection();
-
-            // Get total students
-            ResultSet rs = con.createStatement().executeQuery("SELECT COUNT(*) FROM student");
-            if (rs.next()) {
-                totalStudents = rs.getInt(1);
-            }
-
-            // Get total questions
-            rs = con.createStatement().executeQuery("SELECT COUNT(*) FROM question");
-            if (rs.next()) {
-                totalQuestions = rs.getInt(1);
-            }
-
-            // Get total exams taken
-            rs = con.createStatement().executeQuery("SELECT COUNT(*), AVG(score) FROM result");
-            if (rs.next()) {
-                totalExamsTaken = rs.getInt(1);
-                averageScore = rs.getDouble(2);
-            }
-
-            con.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        int totalStudents = FileManager.getTotalStudents();
+        int totalQuestions = FileManager.getTotalQuestions();
+        int totalExamsTaken = FileManager.getTotalExamsTaken();
+        double averageScore = FileManager.getAverageScore();
 
         StatisticsCard card1 = new StatisticsCard("Total Students", String.valueOf(totalStudents),
                 UIConstants.PRIMARY_COLOR, UIConstants.PRIMARY_COLOR);
@@ -165,15 +142,9 @@ public class AdminPanelEnhanced extends JFrame {
         table.setRowHeight(25);
 
         try {
-            Connection con = DBConnection.getConnection();
-            String query = "SELECT id, name, username, email FROM student";
-            PreparedStatement ps = con.prepareStatement(query);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                model.addRow(new Object[]{rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4)});
+            for (Student student : FileManager.getAllStudents()) {
+                model.addRow(new Object[]{student.getId(), student.getName(), student.getUsername(), student.getEmail()});
             }
-            con.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -209,16 +180,10 @@ public class AdminPanelEnhanced extends JFrame {
         table.setRowHeight(25);
 
         try {
-            Connection con = DBConnection.getConnection();
-            String query = "SELECT id, question, option1, option2, option3, option4, answer FROM question LIMIT 20";
-            PreparedStatement ps = con.prepareStatement(query);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                model.addRow(new Object[]{rs.getInt(1), rs.getString(2), rs.getString(3),
-                    rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7)});
+            for (Question question : FileManager.getAllQuestions()) {
+                model.addRow(new Object[]{question.getId(), question.getQuestion(), question.getOption1(),
+                    question.getOption2(), question.getOption3(), question.getOption4(), question.getCorrectAnswer()});
             }
-            con.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -247,15 +212,12 @@ public class AdminPanelEnhanced extends JFrame {
         table.setRowHeight(25);
 
         try {
-            Connection con = DBConnection.getConnection();
-            String query = "SELECT id, student_id, score, exam_date FROM result ORDER BY exam_date DESC LIMIT 50";
-            PreparedStatement ps = con.prepareStatement(query);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                model.addRow(new Object[]{rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getTimestamp(4)});
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            List<Result> results = FileManager.getAllResults();
+            for (int i = 0; i < results.size() && i < 50; i++) {
+                Result result = results.get(i);
+                model.addRow(new Object[]{result.getId(), result.getStudentId(), result.getScore(), format.format(result.getExamDate())});
             }
-            con.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

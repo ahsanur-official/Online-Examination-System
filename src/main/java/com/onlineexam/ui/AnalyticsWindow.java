@@ -1,13 +1,11 @@
 package com.onlineexam.ui;
 
-import com.onlineexam.database.DBConnection;
+import com.onlineexam.database.FileManager;
+import com.onlineexam.model.Result;
 import com.onlineexam.utils.CustomButton;
 import com.onlineexam.utils.StatisticsCard;
 import com.onlineexam.utils.UIConstants;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import javax.swing.*;
 
 /**
@@ -15,8 +13,8 @@ import javax.swing.*;
  */
 public class AnalyticsWindow extends JFrame {
 
-    private int studentId;
-    private String studentName;
+    private final int studentId;
+    private final String studentName;
 
     public AnalyticsWindow(int studentId, String studentName) {
         this.studentId = studentId;
@@ -51,40 +49,18 @@ public class AnalyticsWindow extends JFrame {
         statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
         // Get analytics data
-        int totalExams = 0, avgScore = 0, highestScore = 0, lowestScore = 100;
-        int passingExams = 0, failingExams = 0;
+        int totalExams = FileManager.getStudentExamCount(studentId);
+        int avgScore = (int) Math.round(FileManager.getStudentAverageScore(studentId));
+        int highestScore = FileManager.getStudentHighestScore(studentId);
+        int lowestScore = FileManager.getStudentLowestScore(studentId);
+        int passingExams = 0;
 
-        try {
-            Connection con = DBConnection.getConnection();
-
-            // Get statistics
-            String query = "SELECT COUNT(*), AVG(CAST(score AS DECIMAL(10,2))), MAX(score), MIN(score) "
-                    + "FROM result WHERE student_id = ?";
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1, studentId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                totalExams = rs.getInt(1);
-                avgScore = (int) rs.getDouble(2);
-                highestScore = rs.getInt(3);
-                lowestScore = rs.getInt(4);
+        for (Result result : FileManager.getStudentResults(studentId)) {
+            if (result.getScore() >= 5) {
+                passingExams++;
             }
-
-            // Count passing and failing
-            String passQuery = "SELECT COUNT(*) FROM result WHERE student_id = ? AND score >= 50";
-            ps = con.prepareStatement(passQuery);
-            ps.setInt(1, studentId);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                passingExams = rs.getInt(1);
-            }
-            failingExams = totalExams - passingExams;
-
-            con.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+        int failingExams = totalExams - passingExams;
 
         // Create cards
         StatisticsCard card1 = new StatisticsCard("Total Exams", String.valueOf(totalExams),
